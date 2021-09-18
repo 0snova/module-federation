@@ -18,7 +18,8 @@
   },
   "include": [
     "src/**/*.ts",
-    "src/RemoteComponent.tsx"
+    "src/RemoteComponent.tsx",
+    "src/RemoteModule.tsx"
   ],
   "exclude": [
     "node_modules",
