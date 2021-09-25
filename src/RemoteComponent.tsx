@@ -33,6 +33,7 @@ export type RemoteComponentProps<T> = T & {
   url?: string;
   urlDev?: string;
   forceUrl?: string;
+  selectUrl?(): string;
   fallback?: SuspenseProps['fallback'];
   notReadyComponent?: React.ReactNode | null;
   failedComponent?: React.ReactNode | null;
@@ -45,11 +46,12 @@ export function RemoteComponent<T>({
   url,
   urlDev,
   forceUrl,
+  selectUrl,
   scope,
   module,
   ...props
 }: RemoteComponentProps<T>) {
-  const selectedUrl = forceUrl ?? ((process.env as any).isProduction ? url : urlDev);
+  const selectedUrl = selectUrl?.() ?? forceUrl ?? ((process.env as any).isProduction ? url : urlDev);
   if (!selectedUrl) {
     throw new Error(`Unable to get URL for RemoteComponent module "${module}": ${selectedUrl}`);
   }
