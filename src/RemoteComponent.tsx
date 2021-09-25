@@ -1,4 +1,4 @@
-import React, { useEffect, useState, SuspenseProps, ReactNode } from 'react';
+import React, { useEffect, useState, SuspenseProps } from 'react';
 import { loadScript } from './loadScript';
 import { initRemoteModule } from './initRemoteModule';
 
@@ -31,8 +31,6 @@ export type RemoteComponentProps<T> = T & {
   scope: string;
   module: string;
   url?: string;
-  urlDev?: string;
-  forceUrl?: string;
   selectUrl?(): string;
   fallback?: SuspenseProps['fallback'];
   notReadyComponent?: React.ReactNode | null;
@@ -44,14 +42,12 @@ export function RemoteComponent<T>({
   notReadyComponent = null,
   failedComponent = null,
   url,
-  urlDev,
-  forceUrl,
   selectUrl,
   scope,
   module,
   ...props
 }: RemoteComponentProps<T>) {
-  const selectedUrl = selectUrl?.() ?? forceUrl ?? ((process.env as any).isProduction ? url : urlDev);
+  const selectedUrl = selectUrl?.() ?? url;
   if (!selectedUrl) {
     throw new Error(`Unable to get URL for RemoteComponent module "${module}": ${selectedUrl}`);
   }
