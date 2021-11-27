@@ -1,71 +1,51 @@
-import React, { useEffect, useState, SuspenseProps } from 'react';
-import { loadScript } from './loadScript';
-import { initRemoteModule } from './initRemoteModule';
+import React, { ReactElement, useMemo } from 'react';
 
-export const useDynamicScript = (url: string) => {
-  const [ready, setReady] = useState(false);
-  const [failed, setFailed] = useState(false);
+import { useDynamicScript } from './useDynamicScript';
+import { RemoteModuleLazyComponent } from './RemoteModuleLazyComponent';
 
-  useEffect(() => {
-    const [promise, script] = loadScript(url);
+interface ForwardRefFn<R> extends React.FunctionComponent {
+  <P = Record<string, unknown>>(props: P & React.RefAttributes<R>): ReactElement | null;
+}
 
-    promise.then(() => {
-      setReady(true);
-      setFailed(false);
-    });
-
-    promise.catch(() => {
-      setReady(false);
-      setFailed(true);
-    });
-
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, [url]);
-
-  return { ready, failed };
-};
-
-export type RemoteComponentProps<T> = T & {
+export type RemoteComponentProps<T = any> = T & {
   scope: string;
   module: string;
-  url?: string;
-  selectUrl?(): string;
-  fallback?: SuspenseProps['fallback'];
-  notReadyComponent?: React.ReactNode | null;
-  failedComponent?: React.ReactNode | null;
+  url?: string | (() => string);
+  fallback?: React.ReactNode;
+  loader?: React.ReactNode;
+  error?: React.ReactNode;
 };
 
-export function RemoteComponent<T>({
-  fallback = null,
-  notReadyComponent = null,
-  failedComponent = null,
-  url,
-  selectUrl,
-  scope,
-  module,
-  ...props
-}: RemoteComponentProps<T>) {
-  const selectedUrl = selectUrl?.() ?? url;
-  if (!selectedUrl) {
-    throw new Error(`Unable to get URL for RemoteComponent module "${module}": ${selectedUrl}`);
+export const RemoteComponent = React.forwardRef<HTMLElement, RemoteComponentProps>(
+  (
+    { url, scope, module, fallback = '', loader = '', error = 'Failed to load component', ...props },
+    ref
+  ): JSX.Element => {
+    const selectedUrl = typeof url === 'function' ? url() : url;
+
+    if (!selectedUrl) {
+      throw new Error(`[RemoteComponent] Unable to get RemoteComponent url '${selectedUrl}'.`);
+    }
+    const { failed, ready } = useDynamicScript(selectedUrl);
+
+    const Component = useMemo(() => {
+      if (!failed && ready) {
+        return RemoteModuleLazyComponent(scope, module);
+      }
+
+      return null;
+    }, [scope, module, failed, ready]);
+
+    if (failed) {
+      return <>{error}</>;
+    }
+
+    if (!ready) {
+      return <>{loader}</>;
+    }
+
+    return <React.Suspense fallback={fallback}>{Component && <Component ref={ref} {...props} />}</React.Suspense>;
   }
-  const { failed, ready } = useDynamicScript(selectedUrl);
+) as ForwardRefFn<HTMLElement>;
 
-  if (!ready) {
-    return <>{notReadyComponent}</>;
-  }
-
-  if (failed) {
-    return <>{failedComponent}</>;
-  }
-
-  const Component = React.lazy(initRemoteModule(scope, module));
-
-  return (
-    <React.Suspense fallback={fallback}>
-      <Component {...props} />
-    </React.Suspense>
-  );
-}
+RemoteComponent.displayName = 'RemoteComponent';

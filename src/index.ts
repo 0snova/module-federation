@@ -1,6 +1,7 @@
 export { initRemoteModule } from './initRemoteModule';
 
-export { RemoteComponent, useDynamicScript } from './RemoteComponent';
+export { useDynamicScript } from './useDynamicScript';
+export { RemoteComponent } from './RemoteComponent';
 export type { RemoteComponentProps } from './RemoteComponent';
 
 export { RemoteModule } from './RemoteModule';

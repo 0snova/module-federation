@@ -1,13 +1,13 @@
 import { deferred, EnhancedPromise } from './deferred';
 
-const scriptsCache: Record<string, [EnhancedPromise<string>, HTMLScriptElement] | null> = {};
+const scriptsStatuses: Record<string, EnhancedPromise<string> | undefined> = {};
 
-export const loadScript = (url: string): [EnhancedPromise<string>, HTMLScriptElement] => {
-  if (scriptsCache[url]) {
-    return scriptsCache[url] as [EnhancedPromise<string>, HTMLScriptElement];
+export const loadScript = (url: string, timeout = 30000): EnhancedPromise<string> => {
+  if (scriptsStatuses[url]) {
+    return scriptsStatuses[url] as EnhancedPromise<string>;
   }
 
-  const dfd = deferred({ timeout: 30000 });
+  const def = deferred({ timeout });
 
   const { document: doc } = window;
 
@@ -16,18 +16,30 @@ export const loadScript = (url: string): [EnhancedPromise<string>, HTMLScriptEle
   script.setAttribute('type', 'text/javascript');
   script.setAttribute('src', url);
 
-  script.addEventListener('error', (err) => {
-    scriptsCache[url] = null;
-    dfd.reject(err);
-  });
+  const onError = (err: any) => {
+    if (scriptsStatuses[url]) {
+      delete scriptsStatuses[url];
+    }
+    def.reject(err);
+    clearEventHandlers();
+  };
 
-  script.addEventListener('load', () => {
-    dfd.resolve(script);
-  });
+  const onLoad = () => {
+    def.resolve(script);
+    clearEventHandlers();
+  };
+
+  const clearEventHandlers = () => {
+    script.removeEventListener('error', onError);
+    script.removeEventListener('load', onLoad);
+  };
+
+  script.addEventListener('error', onError);
+  script.addEventListener('load', onLoad);
 
   doc.head.appendChild(script);
 
-  scriptsCache[url] = [dfd, script];
+  scriptsStatuses[url] = def;
 
-  return scriptsCache[url] as [EnhancedPromise<string>, HTMLScriptElement];
+  return scriptsStatuses[url] as EnhancedPromise<string>;
 };

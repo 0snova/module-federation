@@ -6,21 +6,21 @@ export type DeferredOptions = {
 };
 
 export const deferred = ({ id = 'anonymous deferred', timeout }: DeferredOptions) => {
-  let resolve: any;
-  let reject: any;
-  let timeoutId: any;
+  let resolve: (value: string) => void;
+  let reject: (value: any) => void;
+  let timeoutId: ReturnType<typeof setTimeout>;
 
-  const promise = new Promise((resolver, rejector) => {
+  const promise = new Promise<string>((resolver, rejector) => {
     resolve = resolver;
     reject = rejector;
-  }) as EnhancedPromise<any>;
+  }) as EnhancedPromise<string>;
 
-  promise.resolve = (arg: any) => {
+  promise.resolve = (arg) => {
     clearTimeout(timeoutId);
     resolve(arg);
   };
 
-  promise.reject = (arg: any) => {
+  promise.reject = (arg) => {
     clearTimeout(timeoutId);
     reject(arg);
   };
