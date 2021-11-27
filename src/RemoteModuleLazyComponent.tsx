@@ -11,7 +11,7 @@ export const RemoteModuleLazyComponent = (scope: string, module: string) =>
     const withRef = React.forwardRef((props, ref) => {
       return <RemoteComponentModule ref={ref} {...props} />;
     });
-    withRef.displayName = `Remote(${RemoteComponentModule.displayName})`;
+    (withRef as React.FunctionComponent).displayName = `Remote(${RemoteComponentModule.displayName})`;
 
     return {
       default: withRef,
