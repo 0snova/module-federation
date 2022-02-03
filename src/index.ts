@@ -1,8 +1,11 @@
-export { initRemoteModule } from './initRemoteModule';
+export { remoteCode } from './loaders/remoteCode';
 
-export { useDynamicScript } from './useDynamicScript';
-export { RemoteComponent } from './RemoteComponent';
-export type { RemoteComponentProps } from './RemoteComponent';
+export { RemoteComponent } from './components/RemoteComponent';
+export type { RemoteComponentProps } from './components/RemoteComponent';
+export { RemoteModule } from './components/RemoteModule';
+export type { FederatedSystemParams, RemoteModuleProps } from './components/RemoteModule';
 
-export { RemoteModule } from './RemoteModule';
-export type { FederatedSystemParams, RemoteModuleProps } from './RemoteModule';
+export { useLoadScript } from './hooks/useLoadScript';
+export type { UseLoadScriptResult } from './hooks/useLoadScript';
+export { useRemoteCode } from './hooks/useRemoteCode';
+export type { RemoteCodeLoaderResult } from './hooks/useRemoteCode';

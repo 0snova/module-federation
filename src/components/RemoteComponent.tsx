@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 
-import { useDynamicScript } from './useDynamicScript';
-import { RemoteModuleLazyComponent } from './RemoteModuleLazyComponent';
+import { useLoadScript } from '../hooks/useLoadScript';
+import { RemoteModuleLazyComponent } from '../internal/RemoteModuleLazyComponent';
+import { getRemoteUrl } from '../internal/getRemoteUrl';
 
 declare module 'react' {
   // interface forwardRef<T, P = Record<string, unknown>> extends React.FunctionComponent<P> {
@@ -36,12 +37,8 @@ function RemoteComponentInner<T>(
   }: RemoteComponentProps<T>,
   ref: React.ForwardedRef<HTMLElement>
 ): JSX.Element {
-  const selectedUrl = typeof url === 'function' ? url() : url;
-
-  if (!selectedUrl) {
-    throw new Error(`[RemoteComponent] Unable to get RemoteComponent url '${selectedUrl}'.`);
-  }
-  const { failed, ready } = useDynamicScript(selectedUrl);
+  const selectedUrl = getRemoteUrl(url);
+  const { failed, ready } = useLoadScript(selectedUrl);
 
   const Component = useMemo(() => {
     if (!failed && ready) {

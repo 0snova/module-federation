@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 
-import { loadScript } from './loadScript';
+import { loadScript } from '../internal/loadScript';
 
-export interface UseDynamiScriptResult {
+export interface UseLoadScriptResult {
   ready: boolean;
   failed: boolean;
 }
 
-export const useDynamicScript = (url: string): UseDynamiScriptResult => {
+export const useLoadScript = (url: string): UseLoadScriptResult => {
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
 
